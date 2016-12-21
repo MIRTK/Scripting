@@ -478,6 +478,8 @@ def take_orthogonal_screenshots(image, center=None, length=0, offsets=None,
                 ijk[zdir] += offset
             else:
                 ijk[zdir] += iround(offset / spacing[zdir])
+            if ijk[zdir] < 0 or ijk[zdir] >= dims[zdir]:
+                continue
             vox = list(ijk)
             if trim:
                 bounds = cropping_region(vox, (xdir, ydir, zdir), width, height)
@@ -493,12 +495,12 @@ def take_orthogonal_screenshots(image, center=None, length=0, offsets=None,
                     bounds[4] = 0
                 if bounds[5] >= dims[2]:
                     bounds[5] = dims[2] - 1
-                offset = 2 * xdir
-                width = (bounds[offset + 1] - bounds[offset])
-                vox[xdir] = bounds[offset] + width / 2
-                offset = 2 * ydir
-                height = (bounds[offset + 1] - bounds[offset])
-                vox[ydir] = bounds[offset] + height / 2
+                dim = 2 * xdir
+                width = (bounds[dim + 1] - bounds[dim])
+                vox[xdir] = bounds[dim] + width / 2
+                dim = 2 * ydir
+                height = (bounds[dim + 1] - bounds[dim])
+                vox[ydir] = bounds[dim] + height / 2
             renderer = slice_view(image, zdir=zdir, index=vox, width=width, height=height, **args)
             window = vtk.vtkRenderWindow()
             window.SetSize(size)
