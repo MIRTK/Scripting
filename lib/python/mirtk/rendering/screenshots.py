@@ -177,7 +177,7 @@ def cropping_region(center, axes, width, height):
 
 
 def slice_view(image, index, width, height, zdir=2, polydata=[], colors=default_colors,
-               transform=None, line_width=3, level_window=None):
+               transform=None, line_width=3, level_window=None, image_lut=None, interpolation="nearest"):
     """Return vtkRenderer for orthogonal image slice."""
 
     # determine orientation of medical volume
@@ -256,12 +256,23 @@ def slice_view(image, index, width, height, zdir=2, polydata=[], colors=default_
     if flip_transform:
         actor.SetUserTransform(flip_transform)
     prop = actor.GetProperty()
-    prop.SetInterpolationTypeToNearest()
+    interpolation = interpolation.lower()
+    if interpolation in ("nn", "nearest"):
+        prop.SetInterpolationTypeToNearest()
+    elif interpolation == "linear":
+        prop.SetInterpolationTypeToLinear()
+    elif interpolation == "cubic":
+        prop.SetInterpolationTypeToCubic()
+    else:
+        raise ValueError("Invalid interpolation mode: {}".format(interpolation))
 
     if not level_window:
         level_window = auto_level_window(image)
     prop.SetColorLevel(level_window[0])
     prop.SetColorWindow(level_window[1])
+    if image_lut:
+        prop.SetLookupTable(image_lut)
+        prop.UseLookupTableScalarRangeOn()
 
     renderer = vtk.vtkRenderer()
     renderer.AddActor(actor)
